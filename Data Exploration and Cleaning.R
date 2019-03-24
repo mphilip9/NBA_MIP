@@ -8,14 +8,14 @@ Players <- read.xlsx("C:/Users/Maxwell/Documents/R/NBA_MIP/Seasons_Stats.xlsx", 
 #Cleaning up (Adding PPG, MPG; Removing data prior to 1986; Combining Year with Player name) 
 Players <- Players %>% mutate(PPG = PTS/G)
 Players <- Players %>% mutate(MPG = MP/G)
-Players <- Players %>% subset(Year > 1985)
-Players <- Players %>% unite("YearPlayer", Year, Player, sep = "-")
+Players <- Players %>% subset(Year > 1984)
+Players <- Players %>% unite("YearPlayer", Year, Player, sep = "~")
 
 #Importing MIP Candidates
 MIP_Candidates <- read.xlsx("C:/Users/Maxwell/Documents/R/NBA_MIP/MIP_candidates.xlsx", 1)
 #Cleaning up the MIP candidate table
 MIP_Candidates <- MIP_Candidates %>% gather("Year", "Player", na.rm = TRUE)
-MIP_Candidates <- MIP_Candidates %>% unite("YearPlayer", Year, Player, sep = "-")
+MIP_Candidates <- MIP_Candidates %>% unite("YearPlayer", Year, Player, sep = "~")
 
 #Adding column for whether or not a player is a MIP candidate or not
 MIP_Candidates$MIP_Candidate = "MIP Candidate"
@@ -30,3 +30,16 @@ MIP <- MIP[, -25]
 ggplot(MIP, aes(x = MPG, y = PPG)) + geom_point(aes(color = MIP_Candidate))
 MIP %>% group_by(MIP_Candidate) %>% summarize(avgmpg = mean(MPG))
 MIP %>% group_by(MIP_Candidate) %>% summarize(std = sd(MPG))
+#Removing Players with less than 23 minutes/game
+MIP <- MIP %>% subset(MPG > 23)
+
+#Displaying difference from the previous year
+MIP <- MIP %>% separate(YearPlayer, into = c("Year", "Player"), sep = "~")
+MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_G = G -lag(G))
+MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_MP = MP - lag(MP))
+MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PER = PER - lag(PER))
+MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_WS = WS - lag(WS))
+MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_FTr = FTr - lag(FTr))
+MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = PPG - lag(PPG))
+#Viewing differences between MIP and non_MIP
+ggplot(MIP, aes(x = dif_MP, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
