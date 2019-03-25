@@ -35,11 +35,24 @@ MIP <- MIP %>% subset(MPG > 23)
 
 #Displaying difference from the previous year
 MIP <- MIP %>% separate(YearPlayer, into = c("Year", "Player"), sep = "~")
-MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_G = G -lag(G))
-MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_MP = MP - lag(MP))
-MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PER = PER - lag(PER))
-MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_WS = WS - lag(WS))
-MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_FTr = FTr - lag(FTr))
-MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = PPG - lag(PPG))
+MIP <- MIP %>% arrange(Player, Year) 
+MIP <- MIP %>% arrange(Player, Year) 
+MIP <- MIP %>% arrange(Player, Year) 
+MIP <- MIP %>% arrange(Player, Year) 
+MIP <- MIP %>% arrange(Player, Year) 
+MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = PPG - lag(PPG)) %>% 
+  mutate(dif_VORP = VORP - lag(VORP))%>% mutate(dif_G = G -lag(G)) %>% mutate(dif_MP = MP - lag(MP)) %>% 
+  mutate(dif_PER = PER - lag(PER)) %>% mutate(dif_WS = WS - lag(WS)) %>% mutate(dif_FTr = FTr - lag(FTr))
 #Viewing differences between MIP and non_MIP
 ggplot(MIP, aes(x = dif_MP, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
+ggplot(MIP, aes(x = dif_WS, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
+
+#Checking for NA values
+which(is.na(MIP), arr.ind=TRUE)
+MIP <- MIP %>% mutate_if(is.numeric , replace_na, replace = 0)
+
+#Checking averages for differences
+MIP %>% group_by(MIP_Candidate) %>% summarize(avgmpg = mean(dif_WS))
+which(is.na(MIP), arr.ind=TRUE)
+MIP <- MIP %>% mutate_if(is.numeric , replace_na, replace = 0)
+  
