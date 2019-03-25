@@ -40,9 +40,10 @@ MIP <- MIP %>% arrange(Player, Year)
 MIP <- MIP %>% arrange(Player, Year) 
 MIP <- MIP %>% arrange(Player, Year) 
 MIP <- MIP %>% arrange(Player, Year) 
-MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = PPG - lag(PPG)) %>% 
-  mutate(dif_VORP = VORP - lag(VORP))%>% mutate(dif_G = G -lag(G)) %>% mutate(dif_MP = MP - lag(MP)) %>% 
-  mutate(dif_PER = PER - lag(PER)) %>% mutate(dif_WS = WS - lag(WS)) %>% mutate(dif_FTr = FTr - lag(FTr))
+MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = ifelse(Player == lag(Player), PPG - lag(PPG), 0)) %>%
+  mutate(dif_VORP = ifelse(Player == lag(Player), VORP - lag(VORP), 0)) %>% mutate(dif_MP = ifelse(Player == lag(Player), MP - lag(MP), 0))  %>% 
+  mutate(dif_PER = ifelse(Player == lag(Player), PER - lag(PER), 0))  %>% mutate(dif_WS = ifelse(Player == lag(Player), WS - lag(WS), 0))  %>% 
+  mutate(dif_FTr = ifelse(Player == lag(Player), FTr - lag(FTr), 0))
 #Viewing differences between MIP and non_MIP
 ggplot(MIP, aes(x = dif_MP, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = dif_WS, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
