@@ -32,18 +32,16 @@ MIP %>% group_by(MIP_Candidate) %>% summarize(avgmpg = mean(MPG))
 MIP %>% group_by(MIP_Candidate) %>% summarize(std = sd(MPG))
 #Removing Players with less than 23 minutes/game
 MIP <- MIP %>% subset(MPG > 23)
-
+#Removing % sign from variables
+grep("%$", colnames(MIP))
+colnames(MIP) <- gsub("%", "perc", colnames(MIP))
 #Displaying difference from the previous year
 MIP <- MIP %>% separate(YearPlayer, into = c("Year", "Player"), sep = "~")
-MIP <- MIP %>% arrange(Player, Year) 
-MIP <- MIP %>% arrange(Player, Year) 
-MIP <- MIP %>% arrange(Player, Year) 
-MIP <- MIP %>% arrange(Player, Year) 
-MIP <- MIP %>% arrange(Player, Year) 
 MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = ifelse(Player == lag(Player), PPG - lag(PPG), 0)) %>%
   mutate(dif_VORP = ifelse(Player == lag(Player), VORP - lag(VORP), 0)) %>% mutate(dif_MP = ifelse(Player == lag(Player), MP - lag(MP), 0))  %>% 
   mutate(dif_PER = ifelse(Player == lag(Player), PER - lag(PER), 0))  %>% mutate(dif_WS = ifelse(Player == lag(Player), WS - lag(WS), 0))  %>% 
-  mutate(dif_FTr = ifelse(Player == lag(Player), FTr - lag(FTr), 0))
+  mutate(dif_FTr = ifelse(Player == lag(Player), FTr - lag(FTr), 0)) %>% mutate(dif_TSperc = ifelse(Player == lag(Player), TSperc - lag(TSperc), 0)) %>% 
+  mutate(dif_OWS = ifelse(Player == lag(Player), OWS - lag(OWS), 0)) %>% mutate(dif_DWS = ifelse(Player == lag(Player), DWS - lag(DWS), 0))
 #Viewing differences between MIP and non_MIP
 ggplot(MIP, aes(x = dif_MP, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = dif_WS, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
