@@ -26,10 +26,12 @@ MIP$MIP_Candidate <- replace_na(MIP$MIP_Candidate, "Not_MIP")
 #Removing Blank columns
 MIP <- MIP[, -21]
 MIP <- MIP[, -25]
-#Checking Average minutes and STD for MIP/Not_MIP
+#Checking Average minutes and Games played and STD for MIP/Not_MIP
 ggplot(MIP, aes(x = MPG, y = PPG)) + geom_point(aes(color = MIP_Candidate))
 MIP %>% group_by(MIP_Candidate) %>% summarize(avgmpg = mean(MPG))
 MIP %>% group_by(MIP_Candidate) %>% summarize(std = sd(MPG))
+MIP %>% group_by(MIP_Candidate) %>% summarize(avgG = mean(G))
+MIP %>% group_by(MIP_Candidate) %>% summarize(std = sd(G))
 #Removing Players with less than 23 minutes/game
 MIP <- MIP %>% subset(MPG > 23)
 #Removing % sign from variables
@@ -45,13 +47,17 @@ MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = ifelse(Player == lag(P
 #Viewing differences between MIP and non_MIP
 ggplot(MIP, aes(x = dif_MP, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = dif_WS, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
-
+ggplot(MIP, aes(x = dif_TSperc, y = dif_PER)) + geom_point(aes(color = MIP_Candidate))
+ggplot(MIP, aes(x = dif_OWS, y = dif_DWS)) + geom_point(aes(color = MIP_Candidate))
+ggplot(MIP, aes(x = GS, y = PPG)) + geom_point(aes(color = MIP_Candidate))
 #Checking for NA values
 which(is.na(MIP), arr.ind=TRUE)
 MIP <- MIP %>% mutate_if(is.numeric , replace_na, replace = 0)
 
 #Checking averages for differences
-MIP %>% group_by(MIP_Candidate) %>% summarize(avgmpg = mean(dif_WS))
 which(is.na(MIP), arr.ind=TRUE)
 MIP <- MIP %>% mutate_if(is.numeric , replace_na, replace = 0)
-  
+MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_WS = mean(dif_WS))
+MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_PER = mean(dif_PER))
+MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_MP = mean(dif_MP))
+MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_PPG = mean(dif_PPG))
