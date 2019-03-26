@@ -61,3 +61,5 @@ MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_WS = mean(dif_WS))
 MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_PER = mean(dif_PER))
 MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_MP = mean(dif_MP))
 MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_PPG = mean(dif_PPG))
+#Possible outliers
+MIP %>% filter(MIP_Candidate == "MIP Candidate" & dif_PPG < 0 & dif_WS < 0)
