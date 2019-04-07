@@ -36,7 +36,6 @@ MIP %>% group_by(MIP_Candidate) %>% summarize(std = sd(G))
 grep("%$", colnames(MIP))
 colnames(MIP) <- gsub("%", "perc", colnames(MIP))
 colnames(MIP) <- gsub("3", "Three", colnames(MIP))
-mutate(dif_BLK = ifelse(Player == lag(Player), BLK - lag(BLK), 0))
 #Removing Dan Dickau's extra stats
 MIP <- MIP[-3590, ]
 MIP <- MIP[-3591, ]
@@ -57,7 +56,7 @@ MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = ifelse(Player == lag(P
   mutate(dif_AST = ifelse(Player == lag(Player), AST - lag(AST), 0)) %>% mutate(dif_STL = ifelse(Player == lag(Player), STL - lag(STL), 0)) %>% 
   mutate(dif_BLK = ifelse(Player == lag(Player), BLK - lag(BLK), 0)) %>% mutate(dif_USGperc = ifelse(Player == lag(Player), USGperc - lag(USGperc), 0)) %>% 
   mutate(dif_TOVperc = ifelse(Player == lag(Player), TOVperc - lag(TOVperc), 0)) %>% mutate(dif_BLKperc = ifelse(Player == lag(Player), BLKperc - lag(BLKperc), 0)) %>% 
-  mutate(dif_STLperc = ifelse(Player == lag(Player), STLperc - lag(STLperc), 0))
+  mutate(dif_STLperc = ifelse(Player == lag(Player), STLperc - lag(STLperc), 0)) %>% mutate(dif_BLK = ifelse(Player == lag(Player), BLK - lag(BLK), 0))
 #Viewing differences between MIP and non_MIP
 ggplot(MIP, aes(x = dif_MP, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = dif_WS, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
@@ -74,7 +73,7 @@ MIP <- MIP %>% mutate_if(is.numeric , replace_na, replace = 0)
 MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_WS = mean(dif_WS))
 MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_PER = mean(dif_PER))
 MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_MP = mean(dif_MP))
-MIP %>% group_by(MIP_Candidate) %>% summarize(avgdif_PPG = mean(dif_PPG))
+MIP %>% group_by(MIP_Candidate) %>% summarize(meandif_PPG = mean(dif_PPG))
 #Possible outliers
 MIP %>% filter(MIP_Candidate == "MIP Candidate" & dif_PPG < 0 & dif_WS < 0)
 #Overall outliers
@@ -83,3 +82,6 @@ MIP %>% group_by(MIP_Candidate) %>% summarize(maxBPM = max(dif_BPM))
 MIP %>% group_by(MIP_Candidate) %>% summarize(maxBPM = max(PPG))
 MIP %>% group_by(MIP_Candidate) %>% summarize(minMPG = min(MPG))
 MIP %>% group_by(MIP_Candidate) %>% summarize(minG = min(G))
+#Saving MIP to an rds file
+saveRDS(MIP, file = "my_data.rds")
+save(MIP, file = "MIP.RData")

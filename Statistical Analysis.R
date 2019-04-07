@@ -53,10 +53,13 @@ ggplot(MIPplay, aes(x = as.factor(MIP_Candidate), y = dif_FGperc)) + geom_boxplo
 
 #Code for the report
 ggplot(MIP, aes(x = MPG, y = PPG)) + geom_line()
-ggplot(MIP, aes(x = MPG, y = PPG)) + geom_point(aes(color = MIP_Candidate))
+ggplot(MIPplay, aes(x = MPG, y = PPG)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = PPG)) + geom_histogram(bins = 50, aes(color = MIP_Candidate))
 MIPplay <- MIP %>% subset(G > 55)
 MIPplay <- MIP %>% subset(MPG > 23)#Removing Players with less than 23 minutes/game
 ggplot(MIP, aes(x = as.factor(MIP_Candidate), y = PPG)) + geom_jitter(aes(color = MPG))
 difGraph <- ggplot(MIPplay, aes(x = dif_MPG, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate)) + xlab("Difference in MPG") + ylab("Difference in PPG")
+
+
+#To be added in
 
