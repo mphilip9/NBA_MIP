@@ -1,0 +1,94 @@
+---
+title: "Milestone Report"
+author: "mphilip9"
+date: "March 31, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Predicting the MIP award winner
+
+**Problem**: The NBA is a sports league on the rise. It has a growing fanbase overseas (a professional league is currently being established in Africa with the help of the NBA), and since it lacks the stigma of CTE, it appears poised to steal some of the market share away from the NFL. There are a number of awards given out at the end of each season for various accomplishments, including the most improved player award (MIP). This award is given to the player who has shown the most progress during the regular season. Typically this means players that greatly increased their counting stats compared to their previous seasons in addition to overall player development. 
+
+**Who would care about this?**: Sportwriters are the ones who vote for the award, and so are likely to be interested in seeing who the likely winners are, statistically speaking. Since there are so many different counting stats and a number of advanced statistics regarding playerse in the league, there are a number of fans who obsess over the numbers surrounding the game. Meaning sports analysts would be wise to base their speculation on statistics. Besides the media, sports betting agencies will want to be able to track a player's probability for winning the award in order to place the proper odds on the bet.
+
+**Data Sources**: The data was pulled from a data-set on Kaggle, which in turned was scraped from *Basketball-reference* (https://www.kaggle.com/drgilermo/nba-players-stats/version/2). This data set contains player statistics from the past 67 seasons with 53 attributes, as well as some player information like the college team they played for and their home town. Another table was created from data for the award candidates, which was gathered from *Basketball-reference*. 
+
+**Problem Solution**: In order to predict the award winner, building a logistic regression algorithm is likely the best approach. This algorithm will classify each input as either a MIP award winner or Not a MIP award winner, and it will give the probability for both classes. 
+
+## Data Wrangling/Cleanup
+
+Data wrangling was performed using the tidyr and dplyr packages. New variables (MPG and PPG) were added to the player statistics data frame, and all player data prior to 1985 was removed.  The award was initiated the year before so all previous seasons did not have a MIP candidate, which could effect the predictive model. Also, a number of stats like turnovers and three point shots (the three pointer was even introduced until 79-80) were not tracked until the 1979-80 season. The two tables (player statistics and MIP candidates) were altered to match one another and then joined. NA values in the newly created MIP candidate column were converted to non-MIP. Blank columns were removed from the newly formed table. After reviewing MIP candidate mins and maxes, it was noticed that Dan Dickau had three MIP candidate seasons, all in 2005. The two rows with incomplete season stats were removed. New variables dipsplaying the differences in all player statistics for the previous year were created. Here is a sample of the code used for that purpose
+
+> MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = ifelse(Player == lag(Player), PPG - lag(PPG), 0))
+
+Following the creation of these new variables, NA values for players in the year 1985 were replaced with zeros. Here is a summary of the cleaned up table
+
+```{r MIP, echo = FALSE}
+load(file = "MIP.RData")
+summary(MIP)
+```
+
+## Statistical analysis and data visualization
+
+Before visualizing the difference between MIP and non-MIP candidates in plots, the means for some of the statistics were viewed in a simple table, like so:
+
+```{r table, echo=FALSE}
+library(dplyr)
+library(tidyr)
+MIP %>% group_by(MIP_Candidate) %>% summarize(meandif_PPG = mean(dif_PPG))
+```
+
+Players who played less than 23 minutes per game were initially removed to better visualize the difference (as this was the minumum a MIP candidate played), but this data was kept for the regression model. 
+
+Below is a simple line plot to depict the positive correlation between PPG and MPG. This is essentially true for all statistics. More playing time means more chances to score/steal/etc. It also typically means the player is better as well. This was before the minute parameter was implemented.
+
+```{r plot, echo=FALSE}
+library(ggplot2)
+ggplot(MIP, aes(x = MPG, y = PPG)) + geom_line()
+```
+
+Here is a histogram depicting the frequency of PPG seasons (50 bins).
+
+```{r plot2, echo=FALSE}
+ggplot(MIP, aes(x = PPG)) + geom_histogram(bins = 50, aes(color = MIP_Candidate))
+MIPplay <- MIP %>% subset(G > 55)
+MIPplay <- MIP %>% subset(MPG > 23)
+```
+
+You can see that the average for MIP candidates is higher than the average for Non-candidate players, although it is hard to visualize. To make the comparison between MIP and non-MIP candidates clearer, players with fewer than 23 MPG and 55 G (games played) and players before 1985 were removed. 23 MPG was the minimum amount played for a MIP candidate, and 1985 was chosen because it was one year before the introduction of the award. 55 games played was chosen to remove players with limited data and extremely unlikely to be considered for the award. Below is the same plot but from the altered table.
+
+```{r plot3, echo=FALSE}
+ggplot(MIPplay, aes(x = PPG)) + geom_histogram(bins = 50, aes(color = MIP_Candidate))
+```
+
+Below is a scatter plot graphing PPG vs MPG for MIP and non-MIP candidates. There doesn’t appear to be a discernible trend for MIP vs non-MIP (although this is partly due to overcrowding). 
+
+```{r plot4, echo=FALSE}
+ggplot(MIPplay, aes(x = MPG, y = PPG)) + geom_point(aes(color = MIP_Candidate))
+```
+
+And here is a jittered scatter plot showing the difference in PPG with a color gradient depicting MPG. This does a slightly better job of depicting the difference between the two types. But a more obvious trend can be seen when looking at the difference in a players statistics from the previous season.
+
+```{r plot5, echo=FALSE}
+ggplot(MIPplay, aes(x = as.factor(MIP_Candidate), y = PPG)) + geom_jitter(aes(color = MPG))
+```
+
+The plot below graphs the difference in PPG vs the difference in MPG. The overall trend is very pronounced here as well as the differences between the two groups.
+
+```{r plot6, echo=FALSE}
+ggplot(MIPplay, aes(x = dif_MPG, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate)) + xlab("Difference in MPG") + ylab("Difference in PPG")
+```
+
+Out of all the newly created variables, difference in VORP and difference in PPG appear the most significant.
+
+```{r plot7, echo=FALSE}
+ggplot(MIPplay, aes(x = dif_VORP, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate)) + xlab("Difference in VORP") + ylab("Difference in PPG")
+```
+
+##Logistic Regression Model
+
+Now that the data has been cleaned up and properly visualized, it is time to create the predictive model. To begin, the data was split (with a RNG for reproducability) into a training and a test set. 75% went to the training set and the other 25% to the testing set. The dependent variable, MIP Candidate, was converted to a 1 for "MIP candidate" and a 0 for "Non-MIP candidate", which was then converted into a factor. Virtually every counting stat available, including Age and the Year were used for the independent variables. The model was then used to predict MIP candidates for the test data set. The model has 95% accuracy and 97% AUC.

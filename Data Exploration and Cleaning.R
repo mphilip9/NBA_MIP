@@ -57,15 +57,18 @@ MIP <- MIP %>% arrange(Player, Year) %>% mutate(dif_PPG = ifelse(Player == lag(P
   mutate(dif_BLK = ifelse(Player == lag(Player), BLK - lag(BLK), 0)) %>% mutate(dif_USGperc = ifelse(Player == lag(Player), USGperc - lag(USGperc), 0)) %>% 
   mutate(dif_TOVperc = ifelse(Player == lag(Player), TOVperc - lag(TOVperc), 0)) %>% mutate(dif_BLKperc = ifelse(Player == lag(Player), BLKperc - lag(BLKperc), 0)) %>% 
   mutate(dif_STLperc = ifelse(Player == lag(Player), STLperc - lag(STLperc), 0)) %>% mutate(dif_BLK = ifelse(Player == lag(Player), BLK - lag(BLK), 0))
+
+#Checking for NA values
+which(is.na(MIP), arr.ind=TRUE)
+MIP <- MIP %>% mutate_if(is.numeric , replace_na, replace = 0)
+
 #Viewing differences between MIP and non_MIP
 ggplot(MIP, aes(x = dif_MP, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = dif_WS, y = dif_PPG)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = dif_TSperc, y = dif_PER)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = dif_OWS, y = dif_DWS)) + geom_point(aes(color = MIP_Candidate))
 ggplot(MIP, aes(x = MPG, y = PPG)) + geom_line(aes(color = Pos))
-#Checking for NA values
-which(is.na(MIP), arr.ind=TRUE)
-MIP <- MIP %>% mutate_if(is.numeric , replace_na, replace = 0)
+
 
 #Checking averages for differences
 which(is.na(MIP), arr.ind=TRUE)
@@ -85,3 +88,17 @@ MIP %>% group_by(MIP_Candidate) %>% summarize(minG = min(G))
 #Saving MIP to an rds file
 saveRDS(MIP, file = "my_data.rds")
 save(MIP, file = "MIP.RData")
+
+#Ensuring two tables match up correctly
+MIP %>% filter(Player == "CJ Mcollum")
+
+#Cleaning Current Season Data to input into models
+NewData <- read.xlsx("C:/Users/Maxwell/Documents/R/NBA_MIP/2018-19SeasonStats.xlsx")
+NewData <- NewData %>% mutate(PPG = PTS/G)
+NewData <- NewData %>% mutate(MPG = MP/G)
+NewData <- NewData %>% mutate_if(is.numeric , replace_na, replace = 0)
+NewData$Year <- 2019
+
+MIPnew <- merge(MIP, NewData, by = )
+View(MIPnew)
+#Add in Year, add to MIP data frame with a new name. Create new columns. Remove all years but the current! Try it on the model and see if it works
